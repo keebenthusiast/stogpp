@@ -1,0 +1,13 @@
+[Unit]
+Description=A tiny server/client database server
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/stog --daemon
+ExecStop=/bin/kill -2 $MAINPID
+PIDFile=/var/run/stog.pid
+
+User=root
+
+[Install]
+WantedBy=multi-user.target
