@@ -9,15 +9,26 @@
  * Written by: Christian Kissinger
  */
 
+// local includes
 #include "database.hpp"
 
 static int callback(void *param, int argc, char **argv, char **azColName) {
 
+  Database *obj = reinterpret_cast<Database *>(param);
+
   for (int i = 0; i < argc; i++) {
+
+#ifdef DEBUG
+#endif
+
+    obj->appendOutputStr((argv[i]) ? argv[i] : "NULL");
+
     if (i < (argc - 1)) {
-      printf("%s|", argv[i] ? argv[i] : "NULL");
+
+      obj->appendOutputStr("|");
     } else {
-      printf("%s\n", argv[i] ? argv[i] : "NULL");
+
+      obj->appendOutputStr("\n");
     }
   }
 
@@ -26,18 +37,31 @@ static int callback(void *param, int argc, char **argv, char **azColName) {
 
 Database::Database(std::string location) {
 
+  this->output.clear();
   this->rc = sqlite3_open(location.c_str(), &this->db);
 }
 
-Database::~Database() { sqlite3_close(this->db); }
+Database::~Database() {
+
+  this->freeZErrMsg();
+  this->output.clear();
+  sqlite3_close(this->db);
+}
 
 int Database::execQuery(const std::string query) {
 
-  std::cout << "Before exec statement\n";
-  this->rc = sqlite3_exec(this->db, query.c_str(), callback, 0, &this->zErrMsg);
-  std::cout << "After exec statement\n";
+  this->output.clear();
+
+  this->rc =
+      sqlite3_exec(this->db, query.c_str(), callback, this, &this->zErrMsg);
 
   return this->rc;
+}
+
+std::string Database::getOutputStr() { return this->output; }
+
+void Database::appendOutputStr(std::string str) {
+  this->output = this->output.append(str);
 }
 
 int Database::getStatus() const { return this->rc; }
@@ -47,3 +71,11 @@ std::string Database::getFailureReason() const {
 }
 
 std::string Database::getZErrMsg() const { return this->zErrMsg; }
+
+void Database::freeZErrMsg() {
+
+  if (this->zErrMsg != NULL) {
+    sqlite3_free(this->zErrMsg);
+    this->zErrMsg = 0;
+  }
+}

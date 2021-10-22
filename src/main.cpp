@@ -26,9 +26,11 @@ int main(int argc, char **argv) {
 
   std::cout << "Hello World!\n";
 
+  // std::string tst = "test.dbi";
   std::string tst = "test.db";
 
   Database test(tst);
+  Database thng(tst);
 
   if (test.getStatus()) {
 
@@ -43,11 +45,23 @@ int main(int argc, char **argv) {
   }
 
   std::string query = "SELECT * FROM device;";
+  std::string queryThng = "SELECT dev_name,dev_type FROM device;";
   std::cout << "execing this query: " << query << std::endl;
 
   int ret = test.execQuery(query);
+  int ret2 = thng.execQuery(queryThng);
+
+  std::cout << "test: \n" << test.getOutputStr();
+  std::cout << "thing: \n" << thng.getOutputStr();
 
   std::cout << "exec returned: " << ret << "\n";
+  if (ret != SQLITE_OK) {
+
+    std::cout << "reason: " << test.getZErrMsg() << std::endl;
+    test.freeZErrMsg();
+  }
+
+  test.freeZErrMsg();
 
   return 0;
 }
