@@ -9,21 +9,67 @@
  * Written by: Christian Kissinger
  */
 
-// system includes
-#include <iostream>
-#include <string>
-
-// local includes
-#include "database.hpp"
-
-// for debugging
-
-#ifdef DEBUG
-#include "log/log.h"
-#endif
+#include "main.hpp"
 
 int main(int argc, char **argv) {
 
+#ifdef DEBUG
+  FILE *lg = fopen(LOGLOCATION, "w");
+
+  if (lg == NULL) {
+    fprintf(stderr, "Failed to open log file %s\n", LOGLOCATION);
+
+    fclose(lg);
+
+    return 1;
+  }
+
+  log_add_fp(lg, DEBUG_LEVEL);
+  log_trace("Stog Logger initialized");
+#endif
+
+  /*
+   * Process args
+   */
+  config *cfg = (config *)malloc(sizeof(config));
+
+  int arg_result = process_args(argc, argv, cfg);
+
+  if (arg_result != 0) {
+#ifdef DEBUG
+    log_debug("Failed to process arg, exiting...");
+#endif
+    if (arg_result) {
+      usage(argv[0]);
+    } else if (arg_result < 0) {
+      fprintf(stdout, "Failed to execute as daemon, exiting...\n");
+    }
+
+    /* Clean up as this is a big deal. */
+    if (cfg->db_loc != NULL) {
+      free((void *)cfg->db_loc);
+      cfg->db_loc = NULL;
+    }
+
+    if (cfg->cert_loc != NULL) {
+      free((void *)cfg->cert_loc);
+      cfg->cert_loc = NULL;
+    }
+
+    free(cfg);
+
+#ifdef DEBUG
+    fclose(lg);
+#endif
+
+    return 1;
+  }
+
+#ifdef DEBUG
+  log_trace("args processed");
+#endif
+
+  /*
   std::cout << "Hello World!\n";
 
   // std::string tst = "test.dbi";
@@ -32,7 +78,7 @@ int main(int argc, char **argv) {
   Database test(tst);
   Database thng(tst);
 
-  if (test.getStatus()) {
+  if (test.getStatusCode() != SQLITE_OK) {
 
     std::cout << "cannot open database\n"
               << "Reason: " << test.getFailureReason() << std::endl;
@@ -61,7 +107,24 @@ int main(int argc, char **argv) {
     test.freeZErrMsg();
   }
 
-  test.freeZErrMsg();
+  test.freeZErrMsg();*/
+
+  /* upon exit, clean up */
+  if (cfg->db_loc != NULL) {
+    free((void *)cfg->db_loc);
+    cfg->db_loc = NULL;
+  }
+
+  if (cfg->cert_loc != NULL) {
+    free((void *)cfg->cert_loc);
+    cfg->cert_loc = NULL;
+  }
+
+  free(cfg);
+
+#ifdef DEBUG
+  fclose(lg);
+#endif
 
   return 0;
 }
