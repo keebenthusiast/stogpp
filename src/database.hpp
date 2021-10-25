@@ -12,13 +12,11 @@
 #ifndef DATABASE_H_
 #define DATABASE_H_
 
-// system includes
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
 #include <string>
 
-// local includes
 #include "sqlite3/sqlite3.h"
 
 #ifdef DEBUG
@@ -38,16 +36,13 @@ public:
 
   int execQuery(const std::string query);
 
-  /* output string related */
   std::string getOutputStr();
   void appendOutputStr(std::string str);
 
-  /* regarding status's */
-  int getStatus() const;
+  int getStatusCode() const;
   std::string getFailureReason() const;
   std::string getZErrMsg() const;
 
-  /* free up some resources in case */
   void freeZErrMsg();
 
 private:

@@ -9,7 +9,6 @@
  * Written by: Christian Kissinger
  */
 
-// local includes
 #include "database.hpp"
 
 static int callback(void *param, int argc, char **argv, char **azColName) {
@@ -64,7 +63,7 @@ void Database::appendOutputStr(std::string str) {
   this->output = this->output.append(str);
 }
 
-int Database::getStatus() const { return this->rc; }
+int Database::getStatusCode() const { return this->rc; }
 
 std::string Database::getFailureReason() const {
   return sqlite3_errmsg(this->db);
